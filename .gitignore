@@ -1,0 +1,4 @@
+*.log
+*.tmp
+preview.png
+.preview-browser/

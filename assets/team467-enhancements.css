@@ -1,0 +1,17 @@
+.pr-sidebar { padding: 14px; overflow-y: auto; font-size: 12px; color: #334155; }
+.pr-sidebar h2 { color: #1e3a8a; font-size: 14px; font-weight: 700; margin-bottom: 8px; }
+.pr-sidebar p { margin: 8px 0; line-height: 1.5; }
+.pr-recommendation { margin: 16px 0; padding: 12px; border: 1px solid #bfdbfe; border-radius: 10px; background: #eff6ff; }
+.pr-recommendation strong { color: #1e40af; }
+.pr-sidebar button { background: #2563eb; color: white; border-radius: 6px; padding: 8px 10px; font-size: 12px; font-weight: 600; }
+.pr-sidebar button:hover { background: #1d4ed8; }
+.pr-sidebar button:disabled { opacity: .5; cursor: wait; }
+.pr-sidebar summary { cursor: pointer; color: #1e40af; padding: 8px 0; }
+.pr-sidebar label { display: block; margin: 12px 0; font-weight: 600; }
+.pr-sidebar input, .pr-sidebar textarea, .pr-sidebar select { display: block; width: 100%; margin-top: 5px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; background: white; color: #0f172a; font-weight: 400; }
+.pr-sidebar textarea { min-height: 90px; resize: vertical; }
+.pr-sidebar :focus-visible, .pr-terminal-guide button:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+.pr-branch { font-family: var(--font-mono); color: #1e40af; overflow-wrap: anywhere; }
+.pr-result { white-space: pre-wrap; overflow-wrap: anywhere; }
+.pr-terminal-guide { position: sticky; top: -8px; z-index: 1; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin: -2px 0 8px; padding: 8px 10px; border: 1px solid #bfdbfe; border-radius: 6px; background: #eff6ff; color: #1e3a8a; font-family: var(--font-body); font-size: 11px; }
+.pr-terminal-guide button { text-align: left; overflow-wrap: anywhere; color: #1d4ed8; text-decoration: underline; text-underline-offset: 3px; }

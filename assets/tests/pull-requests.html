@@ -1,0 +1,46 @@
+<!doctype html><meta charset="utf-8"><title>Pull request checks</title>
+<pre id="results">Running…</pre>
+<script type="module">
+import { createEnhancements } from '../team467-enhancements.js';
+const output = document.querySelector('#results');
+let passed = 0;
+const assert = (condition, message) => { if (!condition) throw Error(message); passed++; };
+let created = [], pulls = [], notices = [], progress = [], dirty = [], branches = [{ name: 'main', head: 'base' }, { name: 'feature/alex', head: 'feature' }];
+const workspace = { cloned: true, current_branch: 'feature/alex', remote_heads: [{ branch: 'feature/alex', head: 'feature' }] };
+const context = { author: { id: 'alex', name: 'Alex' }, loadRemote: async () => ({ branches }), progress: async value => progress.push(value) };
+const api = { entities: {
+  PullRequest: { filter: async () => ({ items: pulls }), create: async value => { created.push(value); return { ...value, id: 'pr-1' }; } },
+  ClassroomMember: { filter: async () => ({ items: [{ student_id: 'sam', student_name: 'Sam Smith' }, { student_id: 'alex', student_name: 'Alex' }] }) }
+} };
+const React = { createElement: (type, props, ...children) => ({ type, props, children }), useState: value => [value, () => {}] };
+const app = createEnhancements({ React, useWorkspace: () => ({ workspace }), useSession: () => ({ user: context.author, displayName: 'Alex', members: [] }), git: async (ws, command) => ({ ws, lines: ['git handled ' + command] }), changes: () => dirty, head: (ws, branch) => ({ hash: branch === 'main' || ws.current_branch === 'main' ? 'base' : 'feature' }), api, notify: async value => notices.push(value) });
+const command = 'gh pr create --base main --title "Add robot vision" --body "Added vision. Tested in simulation." --reviewer "Sam Smith"';
+try {
+  assert(app.nextStep({ cloned: false }).command.startsWith('git clone'), 'Clone guidance');
+  assert(app.nextStep({ ...workspace, current_branch: 'main' }, 'Alex').command === 'git switch -c feature/alex-topic', 'Branch guidance');
+  dirty = [{ staged: false }]; assert(app.nextStep(workspace).command === 'git add .', 'Stage guidance');
+  dirty = [{ staged: true }]; assert(app.nextStep(workspace).command.startsWith('git commit'), 'Commit guidance');
+  dirty = []; assert(app.nextStep({ ...workspace, remote_heads: [] }).command === 'git push -u origin feature/alex', 'Push guidance');
+  assert(app.nextStep(workspace).command.startsWith('gh pr create'), 'PR guidance');
+  assert((await app.runCommand(workspace, 'git status', context)).lines[0] === 'git handled git status', 'Existing Git commands delegate');
+  assert((await app.runCommand({ ...workspace, current_branch: 'main' }, command, context)).lines.some(line => line.startsWith('error:')), 'Block main');
+  assert((await app.runCommand(workspace, 'gh pr create --title', context)).lines.some(line => line.startsWith('error:')), 'Reject missing option');
+  dirty = [{ staged: true }]; await app.runCommand(workspace, command, context); assert(created.length === 0, 'Block uncommitted changes'); dirty = [];
+  branches[1].head = 'old'; await app.runCommand(workspace, command, context); assert(created.length === 0, 'Block unpushed commits'); branches[1].head = 'feature';
+  const success = await app.runCommand(workspace, command, context);
+  assert(created.length === 1 && created[0].title === 'Add robot vision' && created[0].reviewers[0] === 'sam', 'Create PR with quoted fields and reviewer');
+  assert(progress.length === 1 && notices.length === 1 && success.lines.includes('/github/pulls/pr-1'), 'Progress, notification, link');
+  pulls = [{ id: 'existing', number: 2, status: 'open', compare_branch: 'feature/alex' }];
+  assert((await app.runCommand(workspace, command, context)).lines.some(line => line.includes('already exists')) && created.length === 1, 'Prevent duplicate PR');
+  pulls = []; await app.runCommand(workspace, command.replace('Sam Smith', 'Alex'), context); assert(created.length === 1, 'Block self review');
+  await app.runCommand(workspace, command.replace('Sam Smith', 'Unknown'), context); assert(created.length === 1, 'Block unknown reviewer');
+  const sidebar = app.PullRequestSidebar({ onGuide() {}, onCommand() {}, busy: false });
+  assert(JSON.stringify(sidebar).includes('Recommended: use the terminal'), 'Sidebar recommends terminal');
+  assert(JSON.stringify(app.TerminalGuide({ workspace })).includes('gh pr create'), 'Terminal shows next command');
+  // Parse and execute the actual recovered app too; module errors fail the integration check.
+  await import('../index-Ds5au_fa.js');
+  assert(true, 'Recovered bundle and integration load');
+  output.textContent = `PASS: ${passed} checks (mock backend; no live team data changed)`;
+} catch (error) { output.textContent = 'FAIL: ' + error.stack; }
+</script>
+<div id="root"></div>
